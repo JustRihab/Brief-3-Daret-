@@ -5,7 +5,11 @@ const nomCercle = document.querySelector("#nom-cercle");
 const cotisation = document.querySelector("#cotisation");
 const periodicite = document.querySelector("#periodicite");
 const dateDebut = document.querySelector("#date-debut");
+const participantsListe = document.querySelector("#participants-liste");
+const participantsCompteur = document.querySelector("#participants-compteur");
+const ajouterParticipant = document.querySelector("#ajouter-participant");
 const participantsErreur = document.querySelector("#participants-erreur");
+let numeroParticipant = 0;
 
 function validerNom() {
     const nomErreur = document.querySelector("#nom-cercle-erreur");
@@ -53,7 +57,7 @@ function validerperiodicite() {
         periodiciteErreur.textContent = "Vous devez choisir une periode.";
         periodiciteErreur.classList.remove("hidden");
         periodicite.setAttribute("aria-invalid", true);
-        periodicite.setAttribute("aria-describedby", "nom-cercle-erreur");
+        periodicite.setAttribute("aria-describedby", "periodicite-erreur");
         periodicite.focus();
         return false;
     }
@@ -88,6 +92,153 @@ function validerDateDebut() {
     return true;
 }
 
+function creerChampParticipant() {
+    numeroParticipant ++;
+    const li = document.createElement("li");
+    const input = document.createElement("input");
+    const div = document.createElement("div");
+    const erreur = document.createElement("p");
+    const retirerBtn = document.createElement("button");
+    li.className = "flex items-start gap-3";
+    div.className = "flex min-w-0 flex-1 flex-col";
+    input.type = "text";
+    input.name = "participants";
+    input.placeholder = "veuillez entrer votre nom.";
+    input.setAttribute("aria-label", "Prénom du participant " + numeroParticipant);
+    input.className = "w-full min-w-0 rounded border border-daret-bordure px-3 py-2 focus:outline-2 focus:outline-offset-2 focus:outline-daret-vert";
+    erreur.id = "participant-erreur-" + numeroParticipant;
+    erreur.className ="mt-1 hidden text-sm font-medium text-daret-erreur";
+    retirerBtn.textContent = "Retirer";
+    retirerBtn.type = "button";
+    retirerBtn.dataset.action = "retirer";
+    retirerBtn.className = "rounded border border-daret-vert px-4 py-2 font-medium text-daret-vert hover:bg-daret-vert-clair focus:outline-2 focus:outline-offset-2 focus:outline-daret-vert";
+    div.append(input, erreur);
+    li.append(div, retirerBtn);
+    participantsListe.append(li);
+    updateCompteur();    
+}
+ 
+function updateCompteur() {
+    const nombre = participantsListe.children.length;
+    if (nombre === 1) {
+        participantsCompteur.textContent = nombre + " participant";
+    } else {
+        participantsCompteur.textContent = nombre + " participants";
+    }
+}
+
+function afficherMessErreur(message) {
+    participantsErreur.textContent = message;
+    participantsErreur.classList.remove("hidden"); 
+}
+
+function masquerMessErreur() {
+    participantsErreur.textContent = "";
+    participantsErreur.classList.add("hidden"); 
+}
+
+for (let i=0; i<3; i++) {
+        creerChampParticipant();
+    }
+
+ajouterParticipant.addEventListener("click", function() {
+    const nombre = participantsListe.children.length;
+    const maximum = Number(participantsListe.dataset.max);
+    if (nombre >= maximum) {
+        afficherMessErreur("Vous ne pouvez pas dépasser 20 participants.");
+        return;
+    }
+    masquerMessErreur();
+    creerChampParticipant();
+});
+
+participantsListe.addEventListener("click", function(event) {
+    const bouton = event.target.closest('button[data-action="retirer"]');
+    if (!bouton) {
+        return;
+    }
+    const nombre = participantsListe.children.length;
+    const minimum = Number(participantsListe.dataset.min);
+    if (nombre <= minimum) {
+        afficherMessErreur("Vous devez garder au moins 2 participants.");
+        return;
+    }
+    bouton.closest("li").remove();
+    masquerMessErreur();
+    updateCompteur();
+    validerParticipants(false);
+});
+
+function validerParticipants(tous) {
+    const inputs = participantsListe.querySelectorAll('input[name="participants"]');
+    const minimum = Number(participantsListe.dataset.min);
+    const maximum = Number(participantsListe.dataset.max);
+    const regexPrenom = /^[\p{L}\p{M}]+(?:['’-][\p{L}\p{M}]+)*$/u;
+    let valide = true;
+    inputs.forEach(function (input) {
+        const erreur = input.nextElementSibling;
+        const nom = input.value.trim();
+        let message = "";
+        if (nom === "") {
+            message = "Veuillez saisir un prénom.";
+        } 
+        else if (nom.length < 2 || nom.length > 30) {
+            message = "Le prénom doit contenir entre 2 et 30 caractères.";
+        } 
+        else if (!regexPrenom.test(nom)) {
+            message = "Utilisez uniquement des lettres, apostrophes ou traits d'union.";
+        } 
+        else {
+            inputs.forEach(function (autreInput) {
+                if (input !== autreInput) {
+                    if (nom.toLowerCase() === autreInput.value.trim().toLowerCase()) {
+                        message = "Ce prénom est déjà utilisé.";
+                    }
+                }
+            });
+        }
+        const afficher = tous || input.dataset.touche === "oui" || nom !== "";
+        if (message !== "" && afficher) {
+            erreur.textContent = message;
+            erreur.classList.remove("hidden");
+            input.setAttribute("aria-invalid", "true");
+            input.setAttribute("aria-describedby", erreur.id);
+            valide = false;
+        } 
+        else {
+            erreur.textContent = "";
+            erreur.classList.add("hidden");
+            input.removeAttribute("aria-invalid");
+            input.removeAttribute("aria-describedby");
+        }
+    });
+    if (inputs.length < minimum) {
+        afficherMessErreur("Il faut au moins 2 participants.");
+        return false;
+    }
+    if (inputs.length > maximum) {
+        afficherMessErreur("Vous ne pouvez pas dépasser 20 participants.");
+        return false;
+    }
+    if (!valide && tous) {
+        const premierInvalide = participantsListe.querySelector('[aria-invalid="true"]');
+        if (premierInvalide) {
+            premierInvalide.focus();
+        }
+        return false;
+    }
+    masquerMessErreur();
+    return valide;
+}
+
+participantsListe.addEventListener("input", function (event) {
+    if (event.target.matches('input[name="participants"]')) {
+        event.target.dataset.touche = "oui";
+        validerParticipants(false);
+    }
+});
+
+
 form.addEventListener("submit", function(event) {
     event.preventDefault();
     const nomValide = validerNom();
@@ -106,6 +257,13 @@ form.addEventListener("submit", function(event) {
     if (!dateValide) {
         return;
     }
-})
+    const participantsValides = validerParticipants(true);
+    if (!participantsValides) {
+        return;
+    }
+});
+
+
+
 
 
