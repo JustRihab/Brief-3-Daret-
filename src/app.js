@@ -23,6 +23,14 @@ let ordreParticipants = [];
 let ordreOriginal = [];
 let calendrierGenere = false;
 const calendrier = document.querySelector("#calendrier");
+const detailTour = document.querySelector("#detail-tour");
+const detailTitre = document.querySelector("#detail-titre");
+const detailDate = document.querySelector("#detail-date");
+const detailBeneficiaire = document.querySelector("#detail-beneficiaire");
+const detailMontant = document.querySelector("#detail-montant");
+const detailContributeurs = document.querySelector("#detail-contributeurs");
+const detailFermer = document.querySelector("#detail-fermer");
+let boutonOuvertureDetail = null;
 
 function validerNom() {
     const nomErreur = document.querySelector("#nom-cercle-erreur");
@@ -312,7 +320,12 @@ function genererCalendrier(inputsParticipants, montantBeneficiaire, nombreTours)
             month: "long",
             year: "numeric"
         });
-        celluleBeneficiaire.textContent = beneficiaire;
+        const boutonBeneficiaire = document.createElement("button");
+        boutonBeneficiaire.type = "button";
+        boutonBeneficiaire.textContent = beneficiaire;
+        boutonBeneficiaire.dataset.action = "ouvrir-detail";
+        boutonBeneficiaire.className = "font-medium text-daret-vert underline focus:outline-2 focus:outline-offset-2 focus:outline-daret-vert";
+        celluleBeneficiaire.append(boutonBeneficiaire);
         celluleMontant.textContent = montantBeneficiaire + " MAD";
         celluleStatut.textContent = "En attente";
         ligne.dataset.tour = numeroTour;
@@ -323,6 +336,7 @@ function genererCalendrier(inputsParticipants, montantBeneficiaire, nombreTours)
         celluleMontant.className = "px-4 py-3";
         celluleStatut.className = "px-4 py-3";
         celluleAction.className = "px-4 py-3";
+        ligne.dataset.tour = i + 1;
         ligne.append(celluleNumero, celluleDate, celluleBeneficiaire, celluleMontant, celluleStatut, celluleAction);
         calendrierCorps.append(ligne);
     }
@@ -408,7 +422,7 @@ ordreSaisie.addEventListener("click", function() {
 });
 
 calendrier.addEventListener("click", function(event) {
-    const bouton = event.target.closest('button[data-action]');
+    const bouton = event.target.closest('button[data-action="terminer"], button[data-action="annuler"]');
     if (!bouton) {
         return;
     }
@@ -426,4 +440,43 @@ calendrier.addEventListener("click", function(event) {
     }
 });
 
+calendrier.addEventListener("click", function(event) {
+    const bouton = event.target.closest('button[data-action="ouvrir-detail"]');
+    if (!bouton) {
+        return;
+    }
+    const ligne = bouton.closest("tr");
+    const cellules = ligne.children;
+    detailTitre.textContent = "Détail du tour n° " + ligne.dataset.tour;
+    detailDate.textContent = cellules[1].textContent;
+    detailBeneficiaire.textContent = cellules[2].textContent;
+    detailMontant.textContent = cellules[3].textContent;
+    detailContributeurs.replaceChildren();
+    const inputsParticipants = participantsListe.querySelectorAll('input[name="participants"]');
+    for (let i=0; i<inputsParticipants.length; i++) {
+        const nom = inputsParticipants[i].value.trim();
+        if (nom.toLowerCase() !== cellules[2].textContent.trim().toLowerCase()) {
+            const element = document.createElement("li");
+            element.textContent = nom;
+            detailContributeurs.append(element);
+        }
+    }
+    boutonOuvertureDetail = bouton;
+    detailTour.showModal();
+});
 
+detailFermer.addEventListener("click", function() {
+    detailTour.close();
+});
+
+detailTour.addEventListener("click", function(event) {
+    if (event.target === detailTour) {
+        detailTour.close();
+    }
+});
+
+detailTour.addEventListener("close", function() {
+    if (boutonOuvertureDetail) {
+        boutonOuvertureDetail.focus();
+    }
+});
