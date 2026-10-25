@@ -17,6 +17,11 @@ const resumeDates = document.querySelector("#resume-dates");
 const contenuResultat = document.querySelector("#contenu-resultat");
 const etatVide = document.querySelector("#etat-vide");
 const calendrierCorps = document.querySelector("#calendrier-corps");
+const tirageAuSort = document.querySelector("#tirage-au-sort");
+const ordreSaisie = document.querySelector("#ordre-saisie");
+let ordreParticipants = [];
+let ordreOriginal = [];
+let calendrierGenere = false;
 
 function validerNom() {
     const nomErreur = document.querySelector("#nom-cercle-erreur");
@@ -293,7 +298,7 @@ function genererCalendrier(inputsParticipants, montantBeneficiaire, nombreTours)
         const celluleAction = document.createElement("td");
         const numeroTour = i + 1;
         const dateTour = calculerDateTour(dateDebut.value, periodicite.value, numeroTour);
-        const beneficiaire = inputsParticipants[i].value.trim();
+        const beneficiaire = inputsParticipants[i];
         celluleNumero.textContent = numeroTour;
         celluleDate.textContent = dateTour.toLocaleDateString("fr-FR", {
             day: "numeric",
@@ -347,12 +352,18 @@ form.addEventListener("submit", function(event) {
         return;
     }
     const inputsParticipants = participantsListe.querySelectorAll('input[name="participants"]');
-    const nombreParticipants = inputsParticipants.length;
+    ordreOriginal = [];
+    for (let i = 0; i < inputsParticipants.length; i++) {
+        ordreOriginal.push(inputsParticipants[i].value.trim());
+    }
+    ordreParticipants = [...ordreOriginal];
+    const nombreParticipants = ordreParticipants.length;
     const nombreTours = calculerNombreTours(nombreParticipants);
     const montantCotisation = Number(cotisation.value);
     const montantBeneficiaire = calculerMontantBeneficiaire(montantCotisation, nombreParticipants);
     const totalCycle = calculerTotalCycle(montantCotisation, nombreTours);
-    genererCalendrier(inputsParticipants, montantBeneficiaire, nombreTours);
+    genererCalendrier(ordreParticipants, montantBeneficiaire, nombreTours);
+    calendrierGenere = true;
     const premiereDate = calculerDateTour(dateDebut.value, periodicite.value, 1);
     const derniereDate = calculerDateTour(dateDebut.value, periodicite.value, nombreTours);
     resumeCagnotte.textContent = montantBeneficiaire + " DH";
@@ -363,6 +374,31 @@ form.addEventListener("submit", function(event) {
     etatVide.classList.add("hidden");
 });
 
+tirageAuSort.addEventListener("click", function() {
+    if (!calendrierGenere) {
+        return;
+    }
+    ordreParticipants = [...ordreOriginal];
+    for (let i = ordreParticipants.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const temp = ordreParticipants[i];
+        ordreParticipants[i] = ordreParticipants[j];
+        ordreParticipants[j] = temp;
+    }
+    const nombreTours = ordreParticipants.length;
+    const montantBeneficiaire = Number(cotisation.value) * nombreTours;
+    genererCalendrier(ordreParticipants, montantBeneficiaire, nombreTours);
+});
+
+ordreSaisie.addEventListener("click", function() {
+    if (!calendrierGenere) {
+        return;
+    }
+    ordreParticipants = [...ordreOriginal];
+    const nombreTours = ordreParticipants.length;
+    const montantBeneficiaire = Number(cotisation.value) * nombreTours;
+    genererCalendrier(ordreParticipants, montantBeneficiaire, nombreTours);
+});
 
 
 
