@@ -16,7 +16,7 @@ const resumeNbTours = document.querySelector("#resume-nb-tours");
 const resumeDates = document.querySelector("#resume-dates");
 const contenuResultat = document.querySelector("#contenu-resultat");
 const etatVide = document.querySelector("#etat-vide");
-
+const calendrierCorps = document.querySelector("#calendrier-corps");
 
 function validerNom() {
     const nomErreur = document.querySelector("#nom-cercle-erreur");
@@ -261,7 +261,7 @@ function calculerDateTour(dateDebut, periodicite, numeroTour) {
             dateTour.setDate(dateTour.getDate() + 7);
         } 
         else if (periodicite === "quinzaine") {
-            dateTour.setDate(dateTour.getDate() + 15);
+            dateTour.setDate(dateTour.getDate() + 14);
         } 
         else if (periodicite === "mensuelle") {
             const anneeDebut = annee;
@@ -277,6 +277,43 @@ function calculerDateTour(dateDebut, periodicite, numeroTour) {
         }
     }
     return dateTour;
+}
+
+function genererCalendrier(inputsParticipants, montantBeneficiaire, nombreTours) {
+    while (calendrierCorps.firstChild) {
+        calendrierCorps.removeChild(calendrierCorps.firstChild);
+    }
+    for (let i=0; i<nombreTours; i++) {
+        const ligne = document.createElement("tr");
+        const celluleNumero = document.createElement("td");
+        const celluleDate = document.createElement("td");
+        const celluleBeneficiaire = document.createElement("td");
+        const celluleMontant = document.createElement("td");
+        const celluleStatut = document.createElement("td");
+        const celluleAction = document.createElement("td");
+        const numeroTour = i + 1;
+        const dateTour = calculerDateTour(dateDebut.value, periodicite.value, numeroTour);
+        const beneficiaire = inputsParticipants[i].value.trim();
+        celluleNumero.textContent = numeroTour;
+        celluleDate.textContent = dateTour.toLocaleDateString("fr-FR", {
+            day: "numeric",
+            month: "long",
+            year: "numeric"
+        });
+        celluleBeneficiaire.textContent = beneficiaire;
+        celluleMontant.textContent = montantBeneficiaire + " MAD";
+        celluleStatut.textContent = "En attente";
+        ligne.dataset.tour = numeroTour;
+        ligne.className = "align-top";
+        celluleNumero.className = "px-4 py-3";
+        celluleDate.className = "px-4 py-3";
+        celluleBeneficiaire.className = "px-4 py-3";
+        celluleMontant.className = "px-4 py-3";
+        celluleStatut.className = "px-4 py-3";
+        celluleAction.className = "px-4 py-3";
+        ligne.append(celluleNumero, celluleDate, celluleBeneficiaire, celluleMontant, celluleStatut, celluleAction);
+        calendrierCorps.append(ligne);
+    }
 }
 
 participantsListe.addEventListener("input", function (event) {
@@ -315,6 +352,7 @@ form.addEventListener("submit", function(event) {
     const montantCotisation = Number(cotisation.value);
     const montantBeneficiaire = calculerMontantBeneficiaire(montantCotisation, nombreParticipants);
     const totalCycle = calculerTotalCycle(montantCotisation, nombreTours);
+    genererCalendrier(inputsParticipants, montantBeneficiaire, nombreTours);
     const premiereDate = calculerDateTour(dateDebut.value, periodicite.value, 1);
     const derniereDate = calculerDateTour(dateDebut.value, periodicite.value, nombreTours);
     resumeCagnotte.textContent = montantBeneficiaire + " DH";
