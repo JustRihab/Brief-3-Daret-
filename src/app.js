@@ -31,6 +31,7 @@ const detailMontant = document.querySelector("#detail-montant");
 const detailContributeurs = document.querySelector("#detail-contributeurs");
 const detailFermer = document.querySelector("#detail-fermer");
 let boutonOuvertureDetail = null;
+const reinitialiser = document.querySelector("#reinitialiser");
 
 function validerNom() {
     const nomErreur = document.querySelector("#nom-cercle-erreur");
@@ -478,5 +479,28 @@ detailTour.addEventListener("click", function(event) {
 detailTour.addEventListener("close", function() {
     if (boutonOuvertureDetail) {
         boutonOuvertureDetail.focus();
+    }
+});
+
+reinitialiser.addEventListener("click", function() {
+    form.reset();
+    participantsListe.replaceChildren();
+    numeroParticipant = 0;
+    for (let i=0; i<3; i++) {
+        creerChampParticipant();
+    }
+    masquerMessErreur();
+    calendrierCorps.replaceChildren();
+    resumeCagnotte.textContent = "";
+    resumeTotalCycle.textContent = "";
+    resumeNbTours.textContent = "";
+    resumeDates.textContent = "";
+    contenuResultat.classList.add("hidden");
+    etatVide.classList.remove("hidden");
+    ordreParticipants = [];
+    ordreOriginal = [];
+    calendrierGenere = false
+    if (detailTour.open) {
+        detailTour.close();
     }
 });
