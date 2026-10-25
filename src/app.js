@@ -22,6 +22,7 @@ const ordreSaisie = document.querySelector("#ordre-saisie");
 let ordreParticipants = [];
 let ordreOriginal = [];
 let calendrierGenere = false;
+const calendrier = document.querySelector("#calendrier");
 
 function validerNom() {
     const nomErreur = document.querySelector("#nom-cercle-erreur");
@@ -296,6 +297,12 @@ function genererCalendrier(inputsParticipants, montantBeneficiaire, nombreTours)
         const celluleMontant = document.createElement("td");
         const celluleStatut = document.createElement("td");
         const celluleAction = document.createElement("td");
+        const boutonStatut = document.createElement("button");
+        boutonStatut.type = "button";
+        boutonStatut.textContent = "Marquer comme terminé";
+        boutonStatut.dataset.action = "terminer";
+        boutonStatut.className = "rounded border px-3 py-2";
+        celluleAction.append(boutonStatut);
         const numeroTour = i + 1;
         const dateTour = calculerDateTour(dateDebut.value, periodicite.value, numeroTour);
         const beneficiaire = inputsParticipants[i];
@@ -400,6 +407,23 @@ ordreSaisie.addEventListener("click", function() {
     genererCalendrier(ordreParticipants, montantBeneficiaire, nombreTours);
 });
 
-
+calendrier.addEventListener("click", function(event) {
+    const bouton = event.target.closest('button[data-action]');
+    if (!bouton) {
+        return;
+    }
+    const ligne = bouton.closest("tr");
+    const celluleStatut = ligne.children[4];
+    if (bouton.dataset.action === "terminer") {
+        celluleStatut.textContent = "Terminé";
+        bouton.textContent = "Annuler";
+        bouton.dataset.action = "annuler";
+    } 
+    else {
+        celluleStatut.textContent = "En attente";
+        bouton.textContent = "Marquer comme terminé";
+        bouton.dataset.action = "terminer";
+    }
+});
 
 
