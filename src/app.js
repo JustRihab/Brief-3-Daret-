@@ -10,6 +10,13 @@ const participantsCompteur = document.querySelector("#participants-compteur");
 const ajouterParticipant = document.querySelector("#ajouter-participant");
 const participantsErreur = document.querySelector("#participants-erreur");
 let numeroParticipant = 0;
+const resumeCagnotte = document.querySelector("#resume-cagnotte");
+const resumeTotalCycle = document.querySelector("#resume-total-cycle");
+const resumeNbTours = document.querySelector("#resume-nb-tours");
+const resumeDates = document.querySelector("#resume-dates");
+const contenuResultat = document.querySelector("#contenu-resultat");
+const etatVide = document.querySelector("#etat-vide");
+
 
 function validerNom() {
     const nomErreur = document.querySelector("#nom-cercle-erreur");
@@ -231,6 +238,47 @@ function validerParticipants(tous) {
     return valide;
 }
 
+function calculerMontantBeneficiaire(cotisation, nombreParticipants) {
+    return cotisation * nombreParticipants;
+}
+
+function calculerTotalCycle(cotisation, nombreTours) {
+    return cotisation * nombreTours;
+}
+
+function calculerNombreTours(nombreParticipants) {
+    return nombreParticipants;
+}
+
+function calculerDateTour(dateDebut, periodicite, numeroTour) {
+    const morceauxDate = dateDebut.split("-");
+    const annee = Number(morceauxDate[0]);
+    const mois = Number(morceauxDate[1]);
+    const jour = Number(morceauxDate[2]);
+    let dateTour = new Date(annee, mois - 1, jour);
+    for (let i=1; i<numeroTour; i++) {
+        if (periodicite === "hebdomadaire") {
+            dateTour.setDate(dateTour.getDate() + 7);
+        } 
+        else if (periodicite === "quinzaine") {
+            dateTour.setDate(dateTour.getDate() + 15);
+        } 
+        else if (periodicite === "mensuelle") {
+            const anneeDebut = annee;
+            const moisDebut = mois - 1;
+            const nouveauMois = moisDebut + i;
+            const dernierJour = new Date(anneeDebut, nouveauMois + 1, 0).getDate();
+            if (jour > dernierJour) {
+                dateTour = new Date(anneeDebut, nouveauMois, dernierJour);
+            } 
+            else {
+                dateTour = new Date(anneeDebut, nouveauMois, jour);
+            }
+        }
+    }
+    return dateTour;
+}
+
 participantsListe.addEventListener("input", function (event) {
     if (event.target.matches('input[name="participants"]')) {
         event.target.dataset.touche = "oui";
@@ -261,6 +309,20 @@ form.addEventListener("submit", function(event) {
     if (!participantsValides) {
         return;
     }
+    const inputsParticipants = participantsListe.querySelectorAll('input[name="participants"]');
+    const nombreParticipants = inputsParticipants.length;
+    const nombreTours = calculerNombreTours(nombreParticipants);
+    const montantCotisation = Number(cotisation.value);
+    const montantBeneficiaire = calculerMontantBeneficiaire(montantCotisation, nombreParticipants);
+    const totalCycle = calculerTotalCycle(montantCotisation, nombreTours);
+    const premiereDate = calculerDateTour(dateDebut.value, periodicite.value, 1);
+    const derniereDate = calculerDateTour(dateDebut.value, periodicite.value, nombreTours);
+    resumeCagnotte.textContent = montantBeneficiaire + " DH";
+    resumeTotalCycle.textContent = totalCycle + " DH";
+    resumeNbTours.textContent = nombreTours;
+    resumeDates.textContent = premiereDate.toLocaleDateString("fr-FR") + " au " + derniereDate.toLocaleDateString("fr-FR");
+    contenuResultat.classList.remove("hidden");
+    etatVide.classList.add("hidden");
 });
 
 
