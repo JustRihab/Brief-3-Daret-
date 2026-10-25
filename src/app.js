@@ -256,7 +256,7 @@ function calculerDateTour(dateDebut, periodicite, numeroTour) {
     const mois = Number(morceauxDate[1]);
     const jour = Number(morceauxDate[2]);
     let dateTour = new Date(annee, mois - 1, jour);
-    for (let i = 1; i < numeroTour; i++) {
+    for (let i=1; i<numeroTour; i++) {
         if (periodicite === "hebdomadaire") {
             dateTour.setDate(dateTour.getDate() + 7);
         } 
