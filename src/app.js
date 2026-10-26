@@ -357,6 +357,20 @@ function updateCompteurTours() {
         termines + " tours terminés sur " + lignes.length;
 }
 
+function mettreEnEvidenceProchainTour() {
+    const lignes = calendrierCorps.querySelectorAll("tr");
+    lignes.forEach(function(ligne) {
+        ligne.classList.remove("prochain-tour");
+    });
+    for (let i = 0; i < lignes.length; i++) {
+        const statut = lignes[i].children[4];
+        if (statut.textContent.trim() !== "Terminé") {
+            lignes[i].classList.add("prochain-tour");
+            break;
+        }
+    }
+}
+
 participantsListe.addEventListener("input", function (event) {
     if (event.target.matches('input[name="participants"]')) {
         event.target.dataset.touche = "oui";
@@ -400,6 +414,7 @@ form.addEventListener("submit", function(event) {
     const totalCycle = calculerTotalCycle(montantCotisation, nombreTours);
     genererCalendrier(ordreParticipants, montantBeneficiaire, nombreTours);
     updateCompteurTours();
+    mettreEnEvidenceProchainTour();
     calendrierGenere = true;
     const premiereDate = calculerDateTour(dateDebut.value, periodicite.value, 1);
     const derniereDate = calculerDateTour(dateDebut.value, periodicite.value, nombreTours);
@@ -425,6 +440,8 @@ tirageAuSort.addEventListener("click", function() {
     const nombreTours = ordreParticipants.length;
     const montantBeneficiaire = Number(cotisation.value) * nombreTours;
     genererCalendrier(ordreParticipants, montantBeneficiaire, nombreTours);
+    updateCompteurTours();
+    mettreEnEvidenceProchainTour();
 });
 
 ordreSaisie.addEventListener("click", function() {
@@ -435,6 +452,8 @@ ordreSaisie.addEventListener("click", function() {
     const nombreTours = ordreParticipants.length;
     const montantBeneficiaire = Number(cotisation.value) * nombreTours;
     genererCalendrier(ordreParticipants, montantBeneficiaire, nombreTours);
+    updateCompteurTours();
+    mettreEnEvidenceProchainTour();
 });
 
 calendrier.addEventListener("click", function(event) {
@@ -448,13 +467,16 @@ calendrier.addEventListener("click", function(event) {
         celluleStatut.textContent = "Terminé";
         bouton.textContent = "Annuler";
         bouton.dataset.action = "annuler";
+        ligne.classList.add("ligne-terminee");
     } 
     else {
         celluleStatut.textContent = "En attente";
         bouton.textContent = "Marquer comme terminé";
         bouton.dataset.action = "terminer";
+        ligne.classList.remove("ligne-terminee");
     }
     updateCompteurTours();
+    mettreEnEvidenceProchainTour();
 });
 
 calendrier.addEventListener("click", function(event) {
