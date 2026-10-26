@@ -17,6 +17,7 @@ const resumeDates = document.querySelector("#resume-dates");
 const contenuResultat = document.querySelector("#contenu-resultat");
 const etatVide = document.querySelector("#etat-vide");
 const calendrierCorps = document.querySelector("#calendrier-corps");
+const compteurTours = document.querySelector("#compteur-tours");
 const tirageAuSort = document.querySelector("#tirage-au-sort");
 const ordreSaisie = document.querySelector("#ordre-saisie");
 let ordreParticipants = [];
@@ -343,6 +344,19 @@ function genererCalendrier(inputsParticipants, montantBeneficiaire, nombreTours)
     }
 }
 
+function updateCompteurTours() {
+    const lignes = calendrierCorps.querySelectorAll("tr");
+    let termines = 0;
+    lignes.forEach(function(ligne) {
+        const statut = ligne.children[4];
+        if (statut.textContent.trim() === "Terminé") {
+            termines++;
+        }
+    });
+    compteurTours.textContent =
+        termines + " tours terminés sur " + lignes.length;
+}
+
 participantsListe.addEventListener("input", function (event) {
     if (event.target.matches('input[name="participants"]')) {
         event.target.dataset.touche = "oui";
@@ -385,6 +399,7 @@ form.addEventListener("submit", function(event) {
     const montantBeneficiaire = calculerMontantBeneficiaire(montantCotisation, nombreParticipants);
     const totalCycle = calculerTotalCycle(montantCotisation, nombreTours);
     genererCalendrier(ordreParticipants, montantBeneficiaire, nombreTours);
+    updateCompteurTours();
     calendrierGenere = true;
     const premiereDate = calculerDateTour(dateDebut.value, periodicite.value, 1);
     const derniereDate = calculerDateTour(dateDebut.value, periodicite.value, nombreTours);
@@ -439,6 +454,7 @@ calendrier.addEventListener("click", function(event) {
         bouton.textContent = "Marquer comme terminé";
         bouton.dataset.action = "terminer";
     }
+    updateCompteurTours();
 });
 
 calendrier.addEventListener("click", function(event) {
